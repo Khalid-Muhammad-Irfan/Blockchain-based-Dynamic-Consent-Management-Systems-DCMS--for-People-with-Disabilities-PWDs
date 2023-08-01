@@ -1,0 +1,41 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract DCMSforPWD {
+    struct Consent {
+        address dataProvider;
+        bool isConsentGiven;
+        uint256 consentTimestamp;
+    }
+
+    mapping(address => Consent) public consents;
+
+    event ConsentUpdated(address indexed dataProvider, bool isConsentGiven);
+
+    function giveConsent() external {
+        require(!consents[msg.sender].isConsentGiven, "Consent already given");
+        
+        consents[msg.sender].dataProvider = msg.sender;
+        consents[msg.sender].isConsentGiven = true;
+        consents[msg.sender].consentTimestamp = block.timestamp;
+        
+        emit ConsentUpdated(msg.sender, true);
+    }
+
+    function revokeConsent() external {
+        require(consents[msg.sender].isConsentGiven, "Consent not given");
+
+        consents[msg.sender].isConsentGiven = false;
+        consents[msg.sender].consentTimestamp = block.timestamp;
+
+        emit ConsentUpdated(msg.sender, false);
+    }
+
+    function checkConsentStatus(address dataProvider) external view returns (bool) {
+        return consents[dataProvider].isConsentGiven;
+    }
+
+    function getConsentTimestamp(address dataProvider) external view returns (uint256) {
+        return consents[dataProvider].consentTimestamp;
+    }
+}
